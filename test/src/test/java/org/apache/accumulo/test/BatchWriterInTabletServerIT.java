@@ -31,6 +31,7 @@ import org.apache.accumulo.core.iterators.user.SummingCombiner;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.harness.AccumuloClusterIT;
 import org.apache.hadoop.io.Text;
+import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -42,6 +43,12 @@ import java.util.Map;
  * @see BatchWriterIterator
  */
 public class BatchWriterInTabletServerIT extends AccumuloClusterIT {
+  private static final Logger log = Logger.getLogger(BatchWriterInTabletServerIT.class);
+
+  @Override
+  public boolean canRunTest(ClusterType type) {
+    return ClusterType.MINI == type;
+  }
 
   /**
    * This test should succeed.
@@ -57,10 +64,11 @@ public class BatchWriterInTabletServerIT extends AccumuloClusterIT {
   }
 
   /**
-   * ACCUMULO-4229
+   * Fixed by ACCUMULO-4229.
    * <p>
-   * This test should fail because the client shares a LocatorCache with the tablet server. Adding a split after the Locator cache falls out of sync causes the
-   * BatchWriter to continuously attempt to write to an old, closed tablet. It will only do so for 15 seconds because we set a timeout on the BatchWriter.
+   * This tests a situation that a client which shares a LocatorCache with the tablet server may fall into. Before the problem was fixed, adding a split after
+   * the Locator cache falls out of sync caused the BatchWriter to continuously attempt to write to an old, closed tablet. It would do so for 15 seconds until a
+   * timeout on the BatchWriter.
    */
   @Test
   public void testClearLocatorAndSplitWrite() throws Exception {
@@ -106,7 +114,7 @@ public class BatchWriterInTabletServerIT extends AccumuloClusterIT {
     // ensure entries correctly wrote to table t2
     scanner = c.createScanner(t2, Authorizations.EMPTY);
     actual = Iterators.getOnlyElement(scanner.iterator());
-    // System.out.println("t2 entry is " + actual.getKey().toStringNoTime() + " -> " + actual.getValue());
+    log.debug("t2 entry is " + actual.getKey().toStringNoTime() + " -> " + actual.getValue());
     Assert.assertTrue(actual.getKey().equals(k, PartialKey.ROW_COLFAM_COLQUAL));
     Assert.assertEquals(numEntriesToWritePerEntry, Integer.parseInt(actual.getValue().toString()));
     scanner.close();
