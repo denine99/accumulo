@@ -290,7 +290,7 @@ Each entry in the KeyStore is the Accumulo Property key name. For example, to st
 
   hadoop credential create instance.secret --provider jceks://file/etc/accumulo/conf/accumulo.jceks
 
-The command will then prompt you to enter the secret to use and create a keystore in: 
+The command will then prompt you to enter the secret to use and create a keystore in:
 
   /etc/accumulo/conf/accumulo.jceks
 
@@ -535,7 +535,7 @@ the +accumulo-metrics.xml+ file. This mechanism can still be used by setting +ge
 ==== Metrics2 Configuration
 
 Metrics2 is configured by examining the classpath for a file that matches +hadoop-metrics2*.properties+. The example configuration
-files that Accumulo provides for use include +hadoop-metrics2-accumulo.properties+ as a template which can be used to enable 
+files that Accumulo provides for use include +hadoop-metrics2-accumulo.properties+ as a template which can be used to enable
 file, Graphite or Ganglia sinks (some minimal configuration required for Graphite and Ganglia). Because the Hadoop configuration is
 also on the Accumulo classpath, be sure that you do not have multiple Metrics2 configuration files. It is recommended to consolidate
 metrics in a single properties file in a central location to remove ambiguity. The contents of +hadoop-metrics2-accumulo.properties+
@@ -610,7 +610,8 @@ parameters, which are grouped under the trace.span.receiver.*
 prefix.  ZooTraceClient uses the following properties.  The first
 three properties are populated from other Accumulo properties,
 while the remaining ones should be prefixed with
-trace.span.receiver. when set in the Accumulo configuration.
+`trace.span.receiver`, when set in the Accumulo configuration
+(e.g., set `trace.span.receiver.tracer.zookeeper.host`, etc.)
 
   tracer.zookeeper.host - populated from instance.zookeepers
   tracer.zookeeper.timeout - populated from instance.zookeeper.timeout
@@ -621,13 +622,13 @@ trace.span.receiver. when set in the Accumulo configuration.
 
 Note that to configure an Accumulo client for tracing, including
 the Accumulo shell, the client configuration must be given the same
-trace.span.receivers, trace.span.receiver.*, and trace.zookeeper.path
+`trace.span.receivers`, `trace.span.receiver.*`, and `trace.zookeeper.path`
 properties as the servers have.
 
 Hadoop can also be configured to send traces to Accumulo, as of
 Hadoop 2.6.0, by setting properties in Hadoop's core-site.xml
-file.  Instead of using the trace.span.receiver.* prefix, Hadoop
-uses hadoop.htrace.*.  The Hadoop configuration does not have
+file.  Instead of using the `trace.span.receiver.*` prefix, Hadoop
+uses `hadoop.htrace.*`.  The Hadoop configuration does not have
 access to Accumulo's properties, so the
 hadoop.htrace.tracer.zookeeper.host property must be specified.
 The zookeeper timeout defaults to 30000 (30 seconds), and the
@@ -662,8 +663,9 @@ The following steps configure Accumulo to use +org.apache.htrace.impl.ZipkinSpan
 in addition to the Accumulo's default ZooTraceClient, and they serve as a template
 for adding any SpanReceiver to Accumulo:
 
-1. Add the Jar containing the ZipkinSpanReceiver class file to the
-+$ACCUMULO_HOME/lib/+.  It is critical that the Jar is placed in
+1. Add the Jar containing the ZipkinSpanReceiver class file to the +$ACCUMULO_HOME/lib/+.
+This is probably the jar `htrace-zipkin-3.1.0-incubating.jar`.
+It is critical that the Jar is placed in
 +lib/+ and NOT in +lib/ext/+ so that the new SpanReceiver class
 is visible to the same class loader of htrace-core.
 
@@ -1068,7 +1070,7 @@ simple calculation for physical memory requirements follows:
 
 ....
   Physical memory needed
-    = (per-process off-heap memory) + (heap memory) + (other processes) + (margin) 
+    = (per-process off-heap memory) + (heap memory) + (other processes) + (margin)
     = (number of java processes * 150M + native map) + (sum of -Xmx settings for java process) + (total applications memory, provisioning memory, etc.) + (1G)
     = (11*150M +500M) + (1G +1G +1G +256M +1G +256M +512M +512M +512M +512M +512M) + (2G) + (1G)
     = (2150M) + (7G) + (2G) + (1G)
